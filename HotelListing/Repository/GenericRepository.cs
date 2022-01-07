@@ -36,7 +36,7 @@ namespace HotelListing.Repository
             {
                 foreach (var includeProp in includes)
                 {
-                    query.Include(includeProp);
+                    query = query.Include(includeProp);
                 }
             }
 
@@ -56,7 +56,7 @@ namespace HotelListing.Repository
             {
                 foreach (var includeProp in includes)
                 {
-                    query.Include(includeProp);
+                    query = query.Include(includeProp);
                 }
             }
 
@@ -70,7 +70,7 @@ namespace HotelListing.Repository
 
         public async Task Insert(T entity)
         {
-             await _dbSet.AddAsync(entity);
+            await _dbSet.AddAsync(entity);
 
         }
 
