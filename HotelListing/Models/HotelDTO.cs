@@ -25,7 +25,12 @@ namespace HotelListing.Models
         [Required]
         public int CountryId { get; set; } //Country object not needed in create.
     }
-    public class HotelDTO : CreateHotelDTO
+
+    public class UpdateHotelDTO : CreateHotelDTO //Single Responsibility, also allows for potential addition/restriction of fields for updating.
+    {
+
+    }
+        public class HotelDTO : CreateHotelDTO
     {
         public int Id { get; set; }
 

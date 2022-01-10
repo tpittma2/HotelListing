@@ -18,6 +18,11 @@ namespace HotelListing.Models
         public string ShortName { get; set; }
     }
 
+    public class UpdateCountryDTO : CreateCountryDTO
+    {
+        public IList<CreateHotelDTO> Hotels { get; set; } //Can create new hotel during PUT.
+    }
+
     public class CountryDTO : CreateCountryDTO
     {
         public int Id { get; set; }
