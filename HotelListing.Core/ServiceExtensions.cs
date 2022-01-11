@@ -1,5 +1,4 @@
 ﻿using AspNetCoreRateLimit;
-using HotelListing.Core.Models;
 using HotelListing.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -18,7 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HotelListing
+namespace HotelListing.Core
 {
     public static class ServiceExtensions
     {
@@ -80,7 +79,7 @@ namespace HotelListing
                     {
                         Log.Error($"Something went wrong in the {contextFeature.Error}");
 
-                        await context.Response.WriteAsync(new Error
+                        await context.Response.WriteAsync(new Models.Error
                         {
                             StatusCode = context.Response.StatusCode,
                             Message = "Internal Server Error. Please try again later."

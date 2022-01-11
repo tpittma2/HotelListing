@@ -1,9 +1,13 @@
-using HotelListing.Configurations;
-using HotelListing.IRepository;
-using HotelListing.Repository;
-using HotelListing.Services;
+using AspNetCoreRateLimit;
+using HotelListing.Core.Configurations;
+using HotelListing.Data;
+using HotelListing.Core.IRepository;
+using HotelListing.Core.Repository;
+using HotelListing.Core.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -33,10 +37,17 @@ namespace HotelListing
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<Data.DatabaseContext>(options =>
+            services.AddDbContext<DatabaseContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
             );
 
+            services.AddMemoryCache(); //needed for rate limiting/throttling
+
+            services.ConfigureRateLimiting();
+            services.AddHttpContextAccessor();
+
+            //   services.AddResponseCaching();
+            services.ConfigureHttpCacheHeaders();
             services.AddAuthentication();
 
             services.ConfigureIdentity(); //Extension method
@@ -61,8 +72,16 @@ namespace HotelListing
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HotelListing", Version = "v1" });
             });
 
-            services.AddControllers().AddNewtonsoftJson(op => 
+            services.AddControllers(config => 
+            {
+                config.CacheProfiles.Add("120SecondsDuration", new CacheProfile
+                {
+                    Duration = 120
+                });
+            }).AddNewtonsoftJson(op => 
                 op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
+            services.ConfigureVersioning();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,9 +94,26 @@ namespace HotelListing
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HotelListing v1"));
             }
 
+            app.ConfigureExceptionHandler();
+
             app.UseHttpsRedirection();
 
             app.UseCors("AllowAll");
+
+           // app.Use(async (ctx, next) =>
+           // {
+           //     ctx.Request.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
+           //     {
+           //         Public = true,
+           //         MaxAge = TimeSpan.FromSeconds(60)
+           //     };
+           //     await next();
+           // }
+           //);
+            app.UseResponseCaching();
+            app.UseHttpCacheHeaders();
+
+            app.UseIpRateLimiting();
 
             app.UseRouting();
 
@@ -94,5 +130,7 @@ namespace HotelListing
                 endpoints.MapControllers();
             });
         }
+
+        
     }
 }
